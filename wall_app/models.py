@@ -1,5 +1,6 @@
 from django.db import models
 import re
+import bcrypt
 
 class UserManager(models.Manager):
     def basic_validator(self, postdata):
@@ -24,6 +25,17 @@ class UserManager(models.Manager):
         if postdata['password'] != postdata['confirm_password']:
             errors['mismatch'] = "Your passwords do not match"
         return errors
+
+    def login_validator(self, postdata):
+        errors= {}
+        existing_user = User.objects.filter(email=postdata['email'])
+        if len(postdata['email']) == 0:
+            errors['email'] = "Email must be entered"
+        if len(postdata['password']) < 8:
+            errors['password'] = "An eight character password must be entered"
+        
+        elif bcrypt.checkpw(postdata['password'].encode(), existing_user[0].password.encode()) != True:
+            errors['password'] = "Email and password do not match"
         
 
 class User(models.Model):
